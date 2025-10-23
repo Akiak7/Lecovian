@@ -1,14 +1,20 @@
-// src/main/java/akira/lecovian/LecovianMixinLoader.java
 package akira.lecovian;
 
-import zone.rong.mixinbooter.ILateMixinLoader;
 import java.util.Collections;
 import java.util.List;
 
-public final class LecovianMixinLoader implements ILateMixinLoader {
-    @Override public List<String> getMixinConfigs() {
-        // Path is relative to resources root
-        return Collections.singletonList("mixins.lecovian.json");
+import zone.rong.mixinbooter.IMixinLoader;
+
+public final class LecovianMixinLoader implements IMixinLoader {
+    private static final String MIXIN_CONFIG = "mixins.lecovian.json";
+
+    @Override
+    public List<String> getMixinConfigs() {
+        return Collections.singletonList(MIXIN_CONFIG);
     }
-    @Override public boolean shouldMixinConfigQueue(String mixinConfig) { return true; }
+
+    @Override
+    public boolean shouldMixinConfigQueue(String mixinConfig) {
+        return !MIXIN_CONFIG.equals(mixinConfig);
+    }
 }
