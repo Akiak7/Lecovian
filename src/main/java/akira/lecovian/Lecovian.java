@@ -3,6 +3,7 @@ package akira.lecovian;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -21,6 +22,11 @@ public class Lecovian {
     @Mod.EventHandler
     public void init(FMLInitializationEvent e) {
         // Nothing else required; mixin does the hook.
+    }
+
+    @Mod.EventHandler
+    public void onLoadComplete(FMLLoadCompleteEvent e) {
+        ConfigFiles.rescanEntities();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

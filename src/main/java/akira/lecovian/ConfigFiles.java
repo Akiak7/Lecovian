@@ -50,6 +50,12 @@ public final class ConfigFiles {
         if (config.hasChanged()) config.save();
     }
 
+    public static void rescanEntities() {
+        if (config != null) {
+            syncFromDisk();
+        }
+    }
+
     private static void initGeneralConfig(Configuration cfg) {
         cfg.addCustomCategoryComment(CATEGORY_GENERAL, "General options for Lecovian variants.");
 
