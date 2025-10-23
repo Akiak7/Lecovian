@@ -12,6 +12,12 @@ public final class DeterministicRNG {
         s ^= global * 0x94D049BB133111EBL;
         return s;
     }
+
+    public static long seed(String base, long global) {
+        long s = (base == null ? 0 : base.hashCode()) * 0xBF58476D1CE4E5B9L;
+        s ^= global * 0x94D049BB133111EBL;
+        return s;
+    }
     private long nextLong() {
         long z = (x += 0x9E3779B97F4A7C15L);
         z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
