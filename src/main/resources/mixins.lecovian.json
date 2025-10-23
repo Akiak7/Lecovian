@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "compatibilityLevel": "JAVA_8",
+  "package": "akira.lecovian.mixin",
+  "refmap": "mixins.lecovian.refmap.json",
+  "client": [
+    "MixinRender"
+  ],
+  "verbose": true
+}

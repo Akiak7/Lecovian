@@ -1,0 +1,61 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.minecraftforge.net' }
+        maven { url 'https://repo.spongepowered.org/maven' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'org.spongepowered.mixin'
+
+version = "1.0.0"
+group = "akira.lecovian"
+archivesBaseName = "lecovian"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+minecraft {
+    version = "1.12.2-14.23.5.2768"
+    mappings = "stable_39"
+    runDir = "run"
+}
+
+repositories {
+    maven { url 'https://repo.spongepowered.org/maven' }
+    mavenCentral()
+}
+
+configurations {
+    embed
+    compile.extendsFrom embed
+}
+
+dependencies {
+    // Shade Mixin so your tweaker can load without relying on Booter
+    embed 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+    // (Remove mixinbooter from compile/runtime. You won’t need it for the test profile.)
+}
+
+mixin {
+    defaultObfuscationEnv 'searge'
+    add sourceSets.main, 'mixins.lecovian.refmap.json'
+}
+
+jar {
+    from { configurations.embed.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    }
+    manifest {
+        attributes(
+            // Tell LaunchWrapper to bootstrap Mixin *from your jar*
+            'TweakClass':   'org.spongepowered.asm.launch.MixinTweaker',
+            'MixinConfigs': 'mixins.lecovian.json',
+            'FMLCorePluginContainsFMLMod': 'true'
+        )
+    }
+}
