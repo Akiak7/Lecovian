@@ -32,7 +32,8 @@ public final class VariantManager {
         if (!ConfigFiles.isEnabled(e)) return null; // null => use original
 
         int variant = Math.floorMod(e.getUniqueID().hashCode(), VARIANT_BUCKETS);
-        Key key = new Key(base, ConfigFiles.GENERAL.globalSeed, ConfigFiles.GENERAL.sigmaDivisor, variant);
+        double sigma = ConfigFiles.getSigmaFor(e);
+        Key key = new Key(base, ConfigFiles.GENERAL.globalSeed, sigma, variant);
         synchronized (CACHE) {
             ResourceLocation rl = CACHE.get(key);
             if (rl != null) return rl;
@@ -45,7 +46,7 @@ public final class VariantManager {
             long seed = DeterministicRNG.seed(seedKey, ConfigFiles.GENERAL.globalSeed);
             DeterministicRNG rng = new DeterministicRNG(seed);
 
-            double s = Math.max(0.05, ConfigFiles.GENERAL.sigmaDivisor);
+            double s = Math.max(0.05, sigma);
 
             // Zero-mean standard normals
             double zHue = rng.nextGaussian();

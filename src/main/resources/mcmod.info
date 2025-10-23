@@ -4,7 +4,7 @@
     "name": "Lecovian",
     "version": "1.0.0",
     "mcversion": "1.12.2",
-    "description": "Client-only: per-entity texture variance (hue + brightness) using lognormal-derived distribution with single sigmaDivisor knob.",
+    "description": "Client-only: per-entity texture variance (hue + brightness) using lognormal-derived distribution with per-entity sigma divisors.",
     "authorList": ["Akira"],
     "credits": ["Laputan base idea"],
     "url": "",
