@@ -41,12 +41,4 @@ public abstract class MixinRender {
         }
         return orig;
     }
-@Inject(method = "bindEntityTexture", at = @At("HEAD"))
-private void lecovian$probe(Entity entity, CallbackInfoReturnable<Boolean> cir) {
-    if (entity instanceof EntityLivingBase) {
-        System.out.println("[Lecovian] bindEntityTexture -> " + entity.getClass().getName());
-    }
-}
-
-
 }
