@@ -29,10 +29,11 @@ public final class VariantManager {
     private static final int VARIANT_BUCKETS = 256;
 
     public static ResourceLocation pickOrBuild(EntityLivingBase e, ResourceLocation base) {
-        if (!ConfigFiles.isEnabled(e)) return null; // null => use original
+        String entityKey = ConfigFiles.getEntityKey(e);
+        if (!ConfigFiles.isEnabled(entityKey)) return null; // null => use original
 
         int variant = Math.floorMod(e.getUniqueID().hashCode(), VARIANT_BUCKETS);
-        double sigma = ConfigFiles.getSigmaFor(e);
+        double sigma = ConfigFiles.getSigmaFor(entityKey);
         Key key = new Key(base, ConfigFiles.GENERAL.globalSeed, sigma, variant);
         synchronized (CACHE) {
             ResourceLocation rl = CACHE.get(key);

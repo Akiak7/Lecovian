@@ -16,6 +16,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ConfigFiles {
     private static final String CATEGORY_GENERAL = "all.general";
@@ -37,6 +38,7 @@ public final class ConfigFiles {
     public static GeneralCfg GENERAL = new GeneralCfg();
     public static final Set<String> ENTITY_BLACKLIST = new LinkedHashSet<>();
     public static final Map<String, Double> ENTITY_SIGMA = new LinkedHashMap<>();
+    private static final Map<Class<? extends EntityLivingBase>, String> ENTITY_KEY_CACHE = new ConcurrentHashMap<>();
 
     private static Configuration config;
 
@@ -60,6 +62,7 @@ public final class ConfigFiles {
         if (config != null) {
             syncFromDisk();
         }
+        ENTITY_KEY_CACHE.clear();
     }
 
     private static void initGeneralConfig(Configuration cfg) {
@@ -143,21 +146,37 @@ public final class ConfigFiles {
     }
 
     public static boolean isEnabled(EntityLivingBase e) {
-        String key = getEntityKey(e);
+        return isEnabled(getEntityKey(e));
+    }
+
+    public static boolean isEnabled(String key) {
         return !ENTITY_BLACKLIST.contains(key);
     }
 
     public static double getSigmaFor(EntityLivingBase e) {
-        String key = getEntityKey(e);
+        return getSigmaFor(getEntityKey(e));
+    }
+
+    public static double getSigmaFor(String key) {
         return ENTITY_SIGMA.getOrDefault(key, DEFAULT_SIGMA_DIVISOR);
     }
 
-    private static String getEntityKey(EntityLivingBase e) {
+    public static String getEntityKey(EntityLivingBase e) {
+        return getEntityKey(e.getClass());
+    }
+
+    public static String getEntityKey(Class<? extends EntityLivingBase> cls) {
+        return ENTITY_KEY_CACHE.computeIfAbsent(cls, ConfigFiles::resolveEntityKey);
+    }
+
+    private static String resolveEntityKey(Class<? extends EntityLivingBase> cls) {
         for (EntityEntry ee : ForgeRegistries.ENTITIES) {
-            if (ee.getEntityClass().isInstance(e)) {
-                return ee.getRegistryName() == null ? e.getClass().getName() : ee.getRegistryName().toString();
+            Class<? extends Entity> entryClass = ee.getEntityClass();
+            if (entryClass == null) continue;
+            if (entryClass.isAssignableFrom(cls)) {
+                return ee.getRegistryName() == null ? cls.getName() : ee.getRegistryName().toString();
             }
         }
-        return e.getClass().getName();
+        return cls.getName();
     }
 }
