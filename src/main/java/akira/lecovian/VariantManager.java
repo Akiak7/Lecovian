@@ -55,14 +55,14 @@ public final class VariantManager {
             /* HUE: wrapped normal in "turns" (1 turn = 360°).
                Full range remains possible; σ controls concentration around 0.
                BASE_SIGMA_TURNS is the 1σ width at s=1. Calibrate once. */
-            final double BASE_SIGMA_TURNS = 0.30;  // ≈36° at s=1
-            double sigmaTurns = BASE_SIGMA_TURNS / s;
+            double baseSigmaTurns = ConfigFiles.GENERAL.baseSigmaTurns;  // ≈36° at s=1 by default
+            double sigmaTurns = baseSigmaTurns / s;
             double dHue = zHue * sigmaTurns;       // in turns (can be any real)
             dHue -= Math.rint(dHue);               // wrap to (−0.5, 0.5]
 
             // --- Brightness (exposure, in stops) ---
-            final double BASE_SIGMA_STOPS = 1.75;                 // 1σ ≈ ±1 stop at s=1
-            double dStops = zVal * (BASE_SIGMA_STOPS / s);       // unbounded RV (no clamp)
+            double baseSigmaStops = ConfigFiles.GENERAL.baseSigmaStops;                 // 1σ ≈ ±1 stop at s=1 by default
+            double dStops = zVal * (baseSigmaStops / s);       // unbounded RV (no clamp)
             float fStops = (float) dStops;
 
             // Cast for the filter
