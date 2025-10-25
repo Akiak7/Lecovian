@@ -29,10 +29,11 @@ public final class VariantManager {
     private static final int VARIANT_BUCKETS = 256;
 
     public static ResourceLocation pickOrBuild(EntityLivingBase e, ResourceLocation base) {
-        if (!ConfigFiles.isEnabled(e)) return null; // null => use original
+        String entityKey = ConfigFiles.getEntityKey(e);
+        if (!ConfigFiles.isEnabled(entityKey)) return null; // null => use original
 
         int variant = Math.floorMod(e.getUniqueID().hashCode(), VARIANT_BUCKETS);
-        double sigma = ConfigFiles.getSigmaFor(e);
+        double sigma = ConfigFiles.getSigmaFor(entityKey);
         Key key = new Key(base, ConfigFiles.GENERAL.globalSeed, sigma, variant);
         synchronized (CACHE) {
             ResourceLocation rl = CACHE.get(key);
@@ -55,14 +56,14 @@ public final class VariantManager {
             /* HUE: wrapped normal in "turns" (1 turn = 360°).
                Full range remains possible; σ controls concentration around 0.
                BASE_SIGMA_TURNS is the 1σ width at s=1. Calibrate once. */
-            final double BASE_SIGMA_TURNS = 0.30;  // ≈36° at s=1
-            double sigmaTurns = BASE_SIGMA_TURNS / s;
+double baseSigmaTurns = ConfigFiles.GENERAL.baseSigmaTurns;  // ≈36° at s=1 by default
+            double sigmaTurns = baseSigmaTurns / s;
             double dHue = zHue * sigmaTurns;       // in turns (can be any real)
             dHue -= Math.rint(dHue);               // wrap to (−0.5, 0.5]
 
             // --- Brightness (exposure, in stops) ---
-            final double BASE_SIGMA_STOPS = 1.75;                 // 1σ ≈ ±1 stop at s=1
-            double dStops = zVal * (BASE_SIGMA_STOPS / s);       // unbounded RV (no clamp)
+            double baseSigmaStops = ConfigFiles.GENERAL.baseSigmaStops;                 // 1σ ≈ ±1 stop at s=1 by default
+            double dStops = zVal * (baseSigmaStops / s);       // unbounded RV (no clamp)
             float fStops = (float) dStops;
 
             // Cast for the filter
@@ -76,7 +77,7 @@ public final class VariantManager {
                 DynamicTexture dyn = new DynamicTexture(out);
                 ResourceLocation newRL = MC.getTextureManager().getDynamicTextureLocation("lecovian/" + key.shortHash(), dyn);
                 synchronized (CACHE) { CACHE.put(key, newRL); }
-                System.out.println("[Lecovian] built variant for " + base + " -> " + newRL);
+                //System.out.println("[Lecovian] built variant for " + base + " -> " + newRL);
                 return newRL;
             }
         } catch (Exception ex) {

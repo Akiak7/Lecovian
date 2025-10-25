@@ -1,61 +1,88 @@
 buildscript {
     repositories {
-        maven { url 'https://maven.minecraftforge.net' }
-        maven { url 'https://repo.spongepowered.org/maven' }
+        // ForgeGradle 2.3 needs the legacy Forge maven, NOT the modern one
+        maven { name = "forge"; url = "https://files.minecraftforge.net/maven" }
+        // Sponge repos for Mixin + mixingradle
+        maven { name = "sponge"; url = "https://repo.spongepowered.org/maven" }
+        // FG 2.3 era also grabs stuff here
+        jcenter()
         mavenCentral()
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        // This is what wires up the Mixin annotation processor correctly
         classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
+
+// apply ForgeGradle and Sponge's Mixin gradle plugin
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 
-version = "1.0.0"
 group = "akira.lecovian"
+version = "1.0.0"
 archivesBaseName = "lecovian"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 minecraft {
+    // DEV environment you build against.
+    // Keep this at 2768 so ForgeGradle can actually resolve userdev.
     version = "1.12.2-14.23.5.2768"
     mappings = "stable_39"
     runDir = "run"
 }
 
+// We make a custom "embed" config for libraries we want to shade into the final jar.
+configurations {
+    embed
+    // We also want to compile against them
+    compile.extendsFrom(embed)
+}
+
 repositories {
-    maven { url 'https://repo.spongepowered.org/maven' }
+    // same repos as buildscript so dependencies resolve here too
+    maven { name = "forge"; url = "https://files.minecraftforge.net/maven" }
+    maven { name = "sponge"; url = "https://repo.spongepowered.org/maven" }
+    jcenter()
     mavenCentral()
 }
 
-configurations {
-    embed
-    compile.extendsFrom embed
-}
-
+// Dependencies:
+// - Sponge Mixin 0.7.11 is the correct era for MC 1.12 + Java 8
+//   We'll compile against it AND embed it so it ships inside your jar.
 dependencies {
-    // Shade Mixin so your tweaker can load without relying on Booter
-    embed 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
-    // (Remove mixinbooter from compile/runtime. You won’t need it for the test profile.)
+    compile "org.spongepowered:mixin:0.7.11-SNAPSHOT"
+    embed  "org.spongepowered:mixin:0.7.11-SNAPSHOT"
 }
 
+// Tell mixingradle how to generate the refmap and what obfuscation we're targeting.
+// "searge" = SRG names = the names used by Forge in production 1.12.2 jars.
 mixin {
-    defaultObfuscationEnv 'searge'
-    add sourceSets.main, 'mixins.lecovian.refmap.json'
+    defaultObfuscationEnv "searge"
+    // This filename MUST match the "refmap" value in your mixins.lecovian.json
+    add sourceSets.main, "mixins.lecovian.refmap.json"
 }
 
 jar {
-    from { configurations.embed.collect { it.isDirectory() ? it : zipTree(it) } } {
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    } {
         exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
     }
     manifest {
         attributes(
-            // Tell LaunchWrapper to bootstrap Mixin *from your jar*
-            'TweakClass':   'org.spongepowered.asm.launch.MixinTweaker',
-            'MixinConfigs': 'mixins.lecovian.json',
-            'FMLCorePluginContainsFMLMod': 'true'
+            "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+            "MixinConfigs": "mixins.lecovian.json",
+            "FMLCorePlugin": "akira.lecovian.LecovianCoreMod",
+            "FMLCorePluginContainsFMLMod": "true"
         )
     }
+}
+
+
+// Reobf step for release jars
+reobf {
+    jar { }
 }
